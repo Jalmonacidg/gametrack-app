@@ -1,1 +1,23 @@
+# Python
 backend/venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+*.egg-info/
+
+# Variables de entorno
+.env
+*.env
+
+# Node
+node_modules/
+
+# VS Code
+.vscode/
+
+# Docker
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
