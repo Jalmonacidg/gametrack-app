@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: gametrack_db
+    environment:
+      POSTGRES_USER: gametrack_user
+      POSTGRES_PASSWORD: gametrack_pass
+      POSTGRES_DB: gametrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
