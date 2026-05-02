@@ -158,3 +158,33 @@ def today_history(db: Session = Depends(get_db)):
         "total_revenue": round(total_revenue, 2),
         "avg_wait_min":  avg_wait
     }
+
+# 7️⃣ HISTORIAL por fecha — para el filtro del frontend
+@router.get("/history")
+def history_by_date(
+    date: str = None,   # formato YYYY-MM-DD
+    db: Session = Depends(get_db)
+):
+    from datetime import date as date_type, datetime
+
+    target_date = date_type.fromisoformat(date) if date else date_type.today()
+
+    tickets = db.query(Ticket).filter(
+        cast(Ticket.emitted_at, Date) == target_date,
+        Ticket.status.in_(["FINALIZADO", "VENCIDO"])
+    ).order_by(Ticket.emitted_at.desc()).all()
+
+    total_revenue = sum(float(t.price) for t in tickets)
+    waited = [
+        (t.started_at - t.emitted_at).total_seconds() / 60
+        for t in tickets if t.started_at and t.emitted_at
+    ]
+    avg_wait = round(sum(waited) / len(waited), 1) if waited else None
+
+    return {
+        "tickets":       tickets,
+        "total_tickets": len(tickets),
+        "total_revenue": round(total_revenue, 2),
+        "avg_wait_min":  avg_wait,
+        "date":          str(target_date)
+    }
