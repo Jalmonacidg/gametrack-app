@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 from datetime import datetime, timedelta
 from database import get_db
 from models import Ticket, Game
@@ -129,3 +130,31 @@ def expire_ticket(ticket_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": f"Ticket {ticket.code} marcado como vencido"}
+
+# 6️⃣ HISTORIAL del día — para el resumen operativo
+@router.get("/history/today")
+def today_history(db: Session = Depends(get_db)):
+    from datetime import date
+
+    tickets = db.query(Ticket).filter(
+        cast(Ticket.emitted_at, Date) == date.today(),
+        Ticket.status.in_(["FINALIZADO", "VENCIDO"])
+    ).order_by(Ticket.emitted_at.desc()).all()
+
+    total_revenue = sum(float(t.price) for t in tickets)
+    avg_wait = None
+
+    waited = [
+        (t.started_at - t.emitted_at).total_seconds() / 60
+        for t in tickets
+        if t.started_at and t.emitted_at
+    ]
+    if waited:
+        avg_wait = round(sum(waited) / len(waited), 1)
+
+    return {
+        "tickets":       tickets,
+        "total_tickets": len(tickets),
+        "total_revenue": round(total_revenue, 2),
+        "avg_wait_min":  avg_wait
+    }

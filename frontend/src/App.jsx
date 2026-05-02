@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import GamePanel from './components/games/GamePanel'
 import TicketPanel from './components/tickets/TicketPanel'
+import HistoryPanel from './components/tickets/HistoryPanel'
 import StatsBar from './components/layout/StatsBar'
 import './App.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchInterval: 5000,  // refresca datos cada 5 segundos
+      refetchInterval: 5000,
       staleTime: 0
     }
   }
@@ -37,7 +38,10 @@ export default function App() {
             selectedGame={selectedGame}
             onSelectGame={setSelectedGame}
           />
-          <TicketPanel selectedGame={selectedGame} />
+          <div className="right-column">
+            <TicketPanel selectedGame={selectedGame} />
+            <HistoryPanel />
+          </div>
         </main>
       </div>
     </QueryClientProvider>

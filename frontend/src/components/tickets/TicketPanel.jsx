@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getActiveTickets, emitTicket, startTicket, endTicket, getGames } from '../../services/api'
 import { getTimeRemaining, formatTime } from '../../utils/timer'
+import { playAlert } from '../../utils/sound'
 
 export default function TicketPanel({ selectedGame }) {
   const qc = useQueryClient()
@@ -29,6 +30,27 @@ export default function TicketPanel({ selectedGame }) {
   const emit  = useMutation({ mutationFn: () => emitTicket(selectedGame.id, duration), onSuccess: invalidate })
   const start = useMutation({ mutationFn: (id) => startTicket(id), onSuccess: invalidate })
   const end   = useMutation({ mutationFn: (id) => endTicket(id),   onSuccess: invalidate })
+
+  // Trackea qué tickets ya fueron alertados para no repetir el sonido
+  const alertedRef = useRef(new Set())
+
+  useEffect(() => {
+    tickets
+      .filter(ticket => ticket.status === 'EN_JUEGO')
+      .forEach(ticket => {
+
+        if (!ticket.estimated_end_at) return
+
+        const timeObj = getTimeRemaining(ticket.estimated_end_at)
+
+        if (timeObj?.expired && !alertedRef.current.has(ticket.id)) {
+          alertedRef.current.add(ticket.id)
+          playAlert()
+        }
+      })
+
+  }, [tickets, now])
+  
 
   return (
     <section className="panel">

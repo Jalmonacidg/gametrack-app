@@ -24,3 +24,6 @@ export const endTicket = (ticket_id) =>
 
 export const expireTicket = (ticket_id) =>
   api.patch(`/tickets/${ticket_id}/expire`).then(r => r.data)
+
+export const getTodayHistory = () =>
+  api.get('/tickets/history/today').then(r => r.data)
